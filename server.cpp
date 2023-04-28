@@ -1,37 +1,31 @@
-﻿#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <winsock2.h>
-
-#pragma comment(lib,"ws2_32.lib")
-#pragma comment(lib,"libcrypto.lib")
-#pragma comment(lib,"libssl.lib")
+﻿#include "head.h"
 
 #define MAX_BUF_SIZE 2048
-#define SERVER_PORT 8080
+#define SERVER_PORT 443
 #define SERVER_CERT "C:\\Users\\64515\\Desktop\\毕业设计\\证书\\server\\server.crt"
-#define SERVER_KEY "C:\\Users\\64515\\Desktop\\毕业设计\\证书\\server\\server.key"
-#define CA_CERT "C:\\Users\\64515\\Desktop\\毕业设计\\证书\\ca.crt"
 
-int CheckCert(SSL* ssl);
 int main(int argc, char* argv[])
 {
     char buf[MAX_BUF_SIZE];
+    char addr[MAX_BUF_SIZE];
+    EVP_PKEY* pkey;
+    X509* cert;
     WSADATA wsaData;
-    int err = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (err != 0) {
-        printf("WSAStartup failed with error: %d\n", err);
+    int* err = (int*)malloc(sizeof(int));
+    *err = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (*err != 0) {
+        printf("WSAStartup failed with error: %d\n", *err);
         return -1;
     }
-   
+    free(err);
+
     /*ssl初始化*/
     SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
+    CRYPTO_secure_malloc_init(32768, 1);
 
-    SSL_CTX* ctx = SSL_CTX_new(TLS_server_method());
+    SSL_CTX* ctx = SSL_CTX_new(TLSv1_2_server_method());
     if (!ctx)
     {
         ERR_print_errors_fp(stdout);
@@ -47,6 +41,34 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    printf("(服务器）请输入P12证书地址\n");
+    scanf("%s", addr);
+    if (InitialP12(addr, &pkey, &cert) != 1) {
+        printf("InitialP12 failed\n");
+    }
+
+    if (SSL_CTX_use_certificate(ctx, cert) <= 0)//加载证书
+    {
+        printf("SSL_CTX_use_certificate failed\n");
+        ERR_print_errors_fp(stdout);
+        return -1;
+    }
+
+    if (SSL_CTX_use_PrivateKey(ctx, pkey) <= 0)//加载私钥
+    {
+        printf("SSL_CTX_use_PrivateKey failed\n");
+        ERR_print_errors_fp(stdout);
+        return -1;
+    }
+
+    if (!SSL_CTX_check_private_key(ctx))//检查证书私钥一致性
+    {
+        printf("Private key does not match the certificate public key\n");
+        ERR_print_errors_fp(stdout);
+        return -1;
+    }
+
+    /*
     if (SSL_CTX_use_certificate_file(ctx, SERVER_CERT, SSL_FILETYPE_PEM) <= 0)
     {
         printf("SSL_CTX_use_certificate_file failed\n");
@@ -67,7 +89,7 @@ int main(int argc, char* argv[])
         ERR_print_errors_fp(stdout);
         return -1;
     }
-
+    */
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == INVALID_SOCKET)
     {
@@ -78,6 +100,10 @@ int main(int argc, char* argv[])
     {
         printf("Creat socket succes\n");
     }
+
+    long options = SSL_CTX_get_options(ctx);
+    options |= SSL_OP_NO_TICKET;
+    SSL_CTX_set_options(ctx, options);
 
     struct sockaddr_in server_addr, client_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -98,7 +124,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    for(;;)
+    for (;;)
     {
         printf("Waiting for client connection...\n");
         int len = sizeof(client_addr);
@@ -125,7 +151,7 @@ int main(int argc, char* argv[])
             }
         }
 
-        for(;;)
+        for (;;)
         {
             memset(buf, 0, MAX_BUF_SIZE);
             int ret = SSL_read(ssl, buf, MAX_BUF_SIZE);
@@ -142,7 +168,7 @@ int main(int argc, char* argv[])
             if (strcmp(buf, "q") == 0) {
                 goto Continue;
             }
-            SSL_write(ssl, buf, (strlen(buf)+1));
+            SSL_write(ssl, buf, (strlen(buf) + 1));
 
         }
 
@@ -157,37 +183,8 @@ int main(int argc, char* argv[])
     SSL_CTX_free(ctx);
     closesocket(sockfd);
     WSACleanup();
+    EVP_PKEY_free(pkey);
+    X509_free(cert);
+    CRYPTO_secure_malloc_done();
     return 0;
-}
-
-int CheckCert(SSL* ssl) {
-    X509* cert;
-    char* line;
-    cert = SSL_get_peer_certificate(ssl);
-    if (cert != NULL) {
-        printf("数字证书信息:\n");
-        line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
-        printf("证书: %s\n", line);
-        free(line);
-        line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
-        printf("颁发者: %s\n", line);
-        free(line);
-        X509_free(cert);
-    }
-    else {
-        printf("无证书信息！\n");
-        return -1;
-    }
-    // SSL_get_verify_result()是重点，SSL_CTX_set_verify()只是配置启不启用并没有执行认证，调用该函数才会真证进行证书认证
-    // 如果验证不通过，那么程序抛出异常中止连接
-    if (SSL_get_verify_result(ssl) == X509_V_OK) {
-        printf("证书验证通过\n");
-        return 1;
-    }
-    else
-    {
-        printf("证书验证不通过\n");
-        return -1;
-    }
-    return -1;
 }
