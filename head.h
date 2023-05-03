@@ -26,14 +26,14 @@ struct ClientSSLAndSocket
 	int clientfd;
 };
 
-extern HANDLE g_hEvent;			/*事件内核对象*/
-extern int clnt_cnt;			//统计套接字
-extern ClientSSLAndSocket clntSSL[MAX_CLNT];	//管理套接字
-extern HANDLE hThread[MAX_CLNT];	//管理线程
+extern HANDLE g_hEvent;			
+extern int clnt_cnt;			
+extern ClientSSLAndSocket clntSSL[MAX_CLNT];	
+extern HANDLE hThread[MAX_CLNT];	
 
-void error_handling(const char* msg);		/*错误处理函数*/
-DWORD WINAPI ThreadProc(LPVOID lpParam);	/*线程执行函数*/
-void send_msg(char* msg, int len);			/*消息发送函数*/
+void error_handling(const char* msg);		//错误处理函数
+DWORD WINAPI ThreadProc(LPVOID lpParam);	//线程执行函数
+void send_msg(char* msg, int len);			//消息发送函数
 int SSLInitial(SSL_CTX* ctx, EVP_PKEY** pkey, X509** cert);
 int CheckCert(SSL* ssl);
 void GetPassword(char* password);

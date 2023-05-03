@@ -1,6 +1,6 @@
 #include "head.h"
 
-HANDLE g_hEvent;			/*事件内核对象*/
+HANDLE g_hEvent;			//事件内核对象
 int clnt_cnt = 0;			//统计套接字
 struct ClientSSLAndSocket clntSSL[MAX_CLNT];	//管理套接字
 HANDLE hThread[MAX_CLNT];	//管理线程
@@ -22,18 +22,12 @@ DWORD WINAPI ThreadProc(LPVOID lpParam)
 	while ((str_len = SSL_read(clnt_ssl, msg, sizeof(msg))) > 0)
 	{
 		send_msg(msg, str_len);
-		printf("群发送成功\n");
+		printf("群发成功\n");
 	}
-	/*
-	while ((str_len = recv(clnt_sock, msg, sizeof(msg), 0)) != -1)
-	{
-		send_msg(msg, str_len);
-		printf("群发送成功\n");
-	}
-	*/
+	
 	printf("客户端退出:%d\n", GetCurrentThreadId());
 	
-	/*等待内核事件对象状态受信*/
+	//退出线程等待内核事件对象状态触发
 	WaitForSingleObject(g_hEvent, INFINITE);
 	for (i = 0; i < clnt_cnt; i++)
 	{
@@ -45,8 +39,8 @@ DWORD WINAPI ThreadProc(LPVOID lpParam)
 		}
 	}
 	clnt_cnt--;
-	SetEvent(g_hEvent);		/*设置受信*/
-	// 关闭同客户端的连接
+	SetEvent(g_hEvent);		//设置触发
+
 	SSL_shutdown(clnt_ssl);
 	SSL_free(clnt_ssl);
 	closesocket(clnt_sock);
@@ -55,11 +49,8 @@ DWORD WINAPI ThreadProc(LPVOID lpParam)
 
 void send_msg(char* msg, int len)
 {
-
-	/*等待内核事件对象状态受信*/
 	WaitForSingleObject(g_hEvent, INFINITE);
 	for (int i = 0; i < clnt_cnt; i++)
-		//send(clnt_socks[i], msg, len, 0);
 		SSL_write(clntSSL[i].ssl,msg , len);
-	SetEvent(g_hEvent);		/*设置受信*/
+	SetEvent(g_hEvent);		//设置触发
 }
