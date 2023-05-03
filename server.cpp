@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     }
     free(err);
 
-    // 创建一个自动重置的（auto-reset events）事件内核对象
+    // 创建一个自动重置的事件内核对象
     g_hEvent = CreateEvent(NULL, FALSE, TRUE, NULL);
 
 
