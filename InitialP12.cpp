@@ -20,7 +20,7 @@ int InitialP12(char* addr, EVP_PKEY** pkey_s, X509** cert_s) {
     char* passwd = (char*)OPENSSL_secure_malloc(256);
 
     printf("«Î ‰»ÎP12÷§ È√‹¬Î\n");
-    get_password(passwd);
+    GetPassword(passwd);
     PKCS12_parse(p12, passwd, &pkey, &cert, NULL);
     OPENSSL_secure_clear_free(passwd, 256);
     *cert_s = cert;

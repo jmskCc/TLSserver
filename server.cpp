@@ -2,7 +2,7 @@
 
 #define MAX_BUF_SIZE 2048
 #define SERVER_PORT 443
-#define SERVER_CERT "C:\\Users\\64515\\Desktop\\毕业设计\\证书\\server\\server.crt"
+#define CA_CERT "C:\\Users\\64515\\Desktop\\毕业设计\\证书\\ca.crt"
 
 int main(int argc, char* argv[])
 {

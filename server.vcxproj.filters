@@ -18,7 +18,7 @@
     <ClCompile Include="server.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="get_password.cpp">
+    <ClCompile Include="GetPassword.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="CheckCert.cpp">
