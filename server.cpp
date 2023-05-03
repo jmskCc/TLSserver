@@ -1,8 +1,5 @@
 ﻿#include "head.h"
 
-#define MAX_BUF_SIZE 2048
-#define SERVER_PORT 443
-#define CA_CERT "C:\\Users\\64515\\Desktop\\毕业设计\\证书\\ca.crt"
 
 int main(int argc, char* argv[])
 {
@@ -10,6 +7,7 @@ int main(int argc, char* argv[])
     char addr[MAX_BUF_SIZE];
     EVP_PKEY* pkey;
     X509* cert;
+    SSL_CTX* ctx;
     WSADATA wsaData;
     int* err = (int*)malloc(sizeof(int));
     *err = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -19,13 +17,22 @@ int main(int argc, char* argv[])
     }
     free(err);
 
+    // 创建一个自动重置的（auto-reset events）事件内核对象
+    g_hEvent = CreateEvent(NULL, FALSE, TRUE, NULL);
+
+
     /*ssl初始化*/
     SSL_library_init();
     SSL_load_error_strings();
     OpenSSL_add_all_algorithms();
     CRYPTO_secure_malloc_init(32768, 1);
 
-    SSL_CTX* ctx = SSL_CTX_new(TLSv1_2_server_method());
+   /*(SSLInitial(ctx, &pkey, &cert) != 1) {
+        printf("SSLInitial failed\n");
+        return -1;
+    }
+    */
+    ctx = SSL_CTX_new(TLSv1_2_server_method());
     if (!ctx)
     {
         ERR_print_errors_fp(stdout);
@@ -115,42 +122,66 @@ int main(int argc, char* argv[])
     if (bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == SOCKET_ERROR)
     {
         printf("bind failed\n");
+        error_handling("Failed bind()");
         return -1;
     }
 
-    if (listen(sockfd, 5) == SOCKET_ERROR)
+    if (listen(sockfd, MAX_CLNT) == SOCKET_ERROR)
     {
         printf("listen failed\n");
         return -1;
     }
 
+    DWORD dwThreadId;	/*线程ID*/
+    int clientfd;
+    int len = sizeof(client_addr);
+    
     for (;;)
     {
         printf("Waiting for client connection...\n");
-        int len = sizeof(client_addr);
-        int clientfd = accept(sockfd, (struct sockaddr*)&client_addr, &len);
+        clientfd = accept(sockfd, (struct sockaddr*)&client_addr, &len);
         if (clientfd == INVALID_SOCKET)
         {
             printf("accept failed\n");
-            return -1;
+            continue;
         }
-        else {
-            printf("server: got connection from %s, port %d, socket %d\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), clientfd);
-        }
-
+        
         SSL* ssl = SSL_new(ctx);
         SSL_set_fd(ssl, clientfd);
         if (SSL_accept(ssl) == -1)
         {
             printf("SSL_accept failed\n");
-            goto Continue;
+            if (ssl) {
+                SSL_shutdown(ssl);
+                SSL_free(ssl);
+            }
+            closesocket(clientfd);
         }
         else {
             if (CheckCert(ssl) == -1) {
-                goto Continue;
+                if (ssl) {
+                    SSL_shutdown(ssl);
+                    SSL_free(ssl);
+                }
+                closesocket(clientfd);
             }
         }
 
+        WaitForSingleObject(g_hEvent, INFINITE);
+
+        clntSSL[clnt_cnt].clientfd = clientfd;
+        clntSSL[clnt_cnt].ssl = ssl;
+        hThread[clnt_cnt] = CreateThread(
+            NULL,		// 默认安全属性
+            NULL,		// 默认堆栈大小
+            ThreadProc,	// 线程入口地址（执行线程的函数）
+            (void*)&clntSSL[clnt_cnt],		// 传给函数的参数
+            0,		// 指定线程立即运行
+            &dwThreadId);
+        clnt_cnt++;
+        SetEvent(g_hEvent);
+        printf("server: ThreadID %d got connection from %s, port %d, socket %d\n", dwThreadId,inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port), clientfd);
+        /*
         for (;;)
         {
             memset(buf, 0, MAX_BUF_SIZE);
@@ -158,7 +189,6 @@ int main(int argc, char* argv[])
             if (ret <= 0) {
                 break;
             }
-
             buf[ret] = '\0';
             printf("Received message: %s\n", buf);
             memset(buf, 0, MAX_BUF_SIZE);
@@ -171,13 +201,15 @@ int main(int argc, char* argv[])
             SSL_write(ssl, buf, (strlen(buf) + 1));
 
         }
+        */
+    //Continue:
+        
+    }
+    WaitForMultipleObjects(clnt_cnt, hThread, true, INFINITE);
 
-    Continue:
-        if (ssl) {
-            SSL_shutdown(ssl);
-            SSL_free(ssl);
-        }
-        closesocket(clientfd);
+    for (int i = 0; i < clnt_cnt; i++)
+    {
+        CloseHandle(hThread[i]);
     }
 
     SSL_CTX_free(ctx);

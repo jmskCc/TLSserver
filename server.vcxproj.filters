@@ -30,6 +30,12 @@
     <ClCompile Include="InitialP12.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Thread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SSLInitial.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="head.h">
