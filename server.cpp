@@ -3,7 +3,6 @@
 
 int main(int argc, char* argv[])
 {
-    char buf[MAX_BUF_SIZE];
     char addr[MAX_BUF_SIZE];
     EVP_PKEY* pkey;
     X509* cert;
