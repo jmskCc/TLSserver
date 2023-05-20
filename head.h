@@ -38,3 +38,4 @@ int SSLInitial(SSL_CTX* ctx, EVP_PKEY** pkey, X509** cert);
 int CheckCert(SSL* ssl);
 void GetPassword(char* password);
 int InitialP12(char* addr, EVP_PKEY** pkey_s, X509** cert_s);
+char* GetCNFormCert(X509* cert);

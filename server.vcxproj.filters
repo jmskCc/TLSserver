@@ -36,6 +36,9 @@
     <ClCompile Include="SSLInitial.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="GetCNFromCert.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="head.h">

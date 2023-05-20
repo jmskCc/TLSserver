@@ -40,19 +40,35 @@ int main(int argc, char* argv[])
     }
 
     SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
-    if (SSL_CTX_load_verify_locations(ctx, CA_CERT, NULL) <= 0)
-    {
-        printf("SSL_CTX_load_verify_locations failed\n");
-        ERR_print_errors_fp(stdout);
-        return -1;
-    }
 
-    printf("(服务器）请输入P12证书地址\n");
-    scanf("%s", addr);
-    if (InitialP12(addr, &pkey, &cert) != 1) {
-        printf("InitialP12 failed\n");
+    for (;;) {
+        printf("(服务器）请输入根证书地址\n");
+        scanf("%s", addr);
+        if (SSL_CTX_load_verify_locations(ctx, addr, NULL) <= 0)
+        {
+            printf("SSL_CTX_load_verify_locations failed\n");
+            ERR_print_errors_fp(stdout);
+            continue;
+        }
+        else
+        {
+            break;
+        }
     }
-
+    memset(addr, 0, MAX_BUF_SIZE);
+    for (;;) {
+        printf("(服务器）请输入P12证书地址\n");
+        scanf("%s", addr);
+        if (InitialP12(addr, &pkey, &cert) != 1) {
+            printf("InitialP12 failed\n");
+            continue;
+        }
+        else
+        {
+            break;
+        }
+    }
+    
     if (SSL_CTX_use_certificate(ctx, cert) <= 0)//加载证书
     {
         printf("SSL_CTX_use_certificate failed\n");
