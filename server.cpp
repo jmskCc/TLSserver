@@ -65,7 +65,15 @@ int main(int argc, char* argv[])
         }
         else
         {
-            break;
+            if (strcmp(GetCNFormCert(cert), "Server")) {
+                printf("输入个人证书不是服务器证书\n");
+                continue;
+            }
+            else
+            {
+                break;
+            }
+            
         }
     }
     
@@ -151,6 +159,7 @@ int main(int argc, char* argv[])
     int clientfd;
     int len = sizeof(client_addr);
     
+    system("cls");
     for (;;)
     {
         printf("Waiting for client connection...\n");
