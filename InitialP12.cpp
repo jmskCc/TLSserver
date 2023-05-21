@@ -11,6 +11,7 @@ int InitialP12(char* addr, EVP_PKEY** pkey_s, X509** cert_s) {
         printf("打开P12文件失败");
         return -1;
     }
+
     p12 = d2i_PKCS12_fp(p12_file, NULL);
     if (!p12) {
         printf("处理P12文件失败");
@@ -29,9 +30,10 @@ int InitialP12(char* addr, EVP_PKEY** pkey_s, X509** cert_s) {
         }
         else
         {
+            OPENSSL_secure_clear_free(passwd, 256);
             break;
         }
-    OPENSSL_secure_clear_free(passwd, 256);
+    }
 
 
     *cert_s = cert;

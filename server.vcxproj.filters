@@ -21,7 +21,7 @@
     <ClCompile Include="GetPassword.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CheckCert.cpp">
+    <ClCompile Include="CheckPeerCert.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="applink.c">
