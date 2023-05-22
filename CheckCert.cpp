@@ -4,7 +4,7 @@ int CheckCert(SSL* ssl) {
     X509* cert;
     char* line;
     cert = SSL_get_peer_certificate(ssl);
-    int flag = X509_check_purpose(cert, X509_PURPOSE_SSL_CLIENT, 0);
+    long flag = X509_check_purpose(cert, X509_PURPOSE_SSL_CLIENT, 0);
     if (cert) {
         printf("数字证书信息:\n");
         line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
@@ -33,7 +33,7 @@ int CheckCert(SSL* ssl) {
         return -1;
     }
 
-    long flag = SSL_get_verify_result(ssl);
+    flag = SSL_get_verify_result(ssl);
     if (flag == X509_V_OK) {
         printf("证书验证通过\n");
         return 1;

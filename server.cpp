@@ -177,24 +177,6 @@ int main(int argc, char* argv[])
         
         SSL* ssl = SSL_new(ctx);
         SSL_set_fd(ssl, clientfd);
-        if (SSL_accept(ssl) == -1)
-        {
-            printf("SSL_accept failed\n");
-            if (ssl) {
-                SSL_shutdown(ssl);
-                SSL_free(ssl);
-            }
-            closesocket(clientfd);
-        }
-        else {
-            if (CheckCert(ssl) == -1) {
-                if (ssl) {
-                    SSL_shutdown(ssl);
-                    SSL_free(ssl);
-                }
-                closesocket(clientfd);
-            }
-        }
 
         WaitForSingleObject(g_hEvent, INFINITE);
 
