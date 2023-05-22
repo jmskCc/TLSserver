@@ -135,7 +135,7 @@
     <ClCompile Include="applink.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="CheckPeerCert.cpp" />
+    <ClCompile Include="CheckCert.cpp" />
     <ClCompile Include="GetCNFromCert.cpp" />
     <ClCompile Include="GetPassword.cpp">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>

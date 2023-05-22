@@ -4,16 +4,32 @@ int CheckCert(SSL* ssl) {
     X509* cert;
     char* line;
     cert = SSL_get_peer_certificate(ssl);
-    if (cert != NULL) {
+    int flag = X509_check_purpose(cert, X509_PURPOSE_SSL_CLIENT, 0);
+    if (cert) {
         printf("数字证书信息:\n");
         line = X509_NAME_oneline(X509_get_subject_name(cert), 0, 0);
         printf("证书: %s\n", line);
-        line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0); 
+        line = X509_NAME_oneline(X509_get_issuer_name(cert), 0, 0);
         printf("颁发者: %s\n", line);
         X509_free(cert);
     }
-    else {
+    else if (!cert) {
         printf("无证书信息！\n");
+        return -1;
+    }
+    else if (flag == 0) {
+        printf("该证书不能用于服务器\n");
+        return -1;
+    }
+    else if (flag == -1)
+    {
+        printf("证书用途验证错误\n");
+        return -1;
+    }
+    else if (flag == 1) {
+        return 1;
+    }
+    else {
         return -1;
     }
 
@@ -38,6 +54,7 @@ int CheckCert(SSL* ssl) {
         return -1;
     }
     else {
+        printf("证书验证失败\n");
         return -1;
     }
 }

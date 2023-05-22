@@ -10,6 +10,7 @@
 #include <openssl/pem.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
+#include <openssl/x509v3.h>
 
 #pragma comment(lib,"ws2_32.lib")
 #pragma comment(lib,"libcrypto.lib")

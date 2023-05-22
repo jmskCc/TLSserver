@@ -8,6 +8,7 @@ int main(int argc, char* argv[])
     X509* cert;
     SSL_CTX* ctx;
     WSADATA wsaData;
+    int flag;
     int* err = (int*)malloc(sizeof(int));
     *err = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (*err != 0) {
@@ -65,15 +66,19 @@ int main(int argc, char* argv[])
         }
         else
         {
-            if (strcmp(GetCNFormCert(cert), "Server")) {
-                printf("输入个人证书不是服务器证书\n");
+            flag = X509_check_purpose(cert, X509_PURPOSE_SSL_SERVER, 0);
+            if ( flag == 0) {
+                printf("该证书不能用于服务器\n");
                 continue;
             }
-            else
+            else if(flag == -1)
             {
+                printf("证书用途验证错误\n");
+                continue;
+            }
+            else if (flag == 1) {
                 break;
             }
-            
         }
     }
     
