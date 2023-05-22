@@ -35,11 +35,10 @@ DWORD WINAPI ThreadProc(LPVOID lpParam)
 		send_msg(msg, str_len);
 		printf("群发成功\n");
 	}
-	
+
+END_OF_THREAD:
 	printf("客户端退出:%d\n", GetCurrentThreadId());
-	
 	//退出线程等待内核事件对象状态触发
-	END_OF_THREAD:
 	WaitForSingleObject(g_hEvent, INFINITE);
 	for (i = 0; i < clnt_cnt; i++)
 	{
