@@ -50,12 +50,12 @@ END_OF_THREAD:
 		}
 	}
 	clnt_cnt--;
-	SetEvent(g_hEvent);		//设置触发
 	if (clnt_ssl) {
 		SSL_shutdown(clnt_ssl);
 		SSL_free(clnt_ssl);
 	}
 	closesocket(clnt_sock);
+	SetEvent(g_hEvent);		//设置触发
 	return NULL;
 }
 

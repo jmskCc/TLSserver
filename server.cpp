@@ -165,10 +165,11 @@ int main(int argc, char* argv[])
     int len = sizeof(client_addr);
     
     system("cls");
+    printf("Waiting for client connection...\n");
     for (;;)
     {
-        printf("Waiting for client connection...\n");
         clientfd = accept(sockfd, (struct sockaddr*)&client_addr, &len);
+        printf("Waiting for client connection...\n");
         if (clientfd == INVALID_SOCKET)
         {
             printf("accept failed\n");
